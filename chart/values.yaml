@@ -5,6 +5,7 @@ domain: bigbang.dev
 
 istio:
   enabled: false
+  ambient: false
   hardened:
     enabled: false
     customAuthorizationPolicies: []

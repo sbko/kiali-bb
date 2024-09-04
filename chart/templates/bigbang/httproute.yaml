@@ -1,0 +1,45 @@
+{{- if .Values.istio.ambient }}
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: kiali-gateway
+  namespace: {{ .Release.Namespace }}
+spec:
+  gatewayClassName: istio
+  listeners:
+  - name: http
+    port: 80
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: kiali
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "kiali-operator.name" . }}
+    helm.sh/chart: {{ include "kiali-operator.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/part-of: kiali
+    app.kubernetes.io/component: kiali
+spec:
+  parentRefs:
+    - name: kiali-gateway
+  hostnames:
+  {{- range .Values.istio.kiali.hosts }}
+    - {{ tpl . $}}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: "/"
+      forwardTo:
+        - serviceName: kiali
+          port: {{ .Values.port | default 20001 }}
+          weight: 100
+{{- end }}
