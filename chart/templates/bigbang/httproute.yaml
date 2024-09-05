@@ -38,8 +38,7 @@ spec:
         - path:
             type: PathPrefix
             value: "/"
-      forwardTo:
-        - serviceName: kiali
-          port: {{ .Values.port | default 20001 }}
-          weight: 100
+      backendRefs:
+      - name: kiali
+        port: {{ .Values.port | default 20001 }}
 {{- end }}
